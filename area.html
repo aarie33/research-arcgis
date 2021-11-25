@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Custom Area ArcGis</title>
+
+  <style>
+    html,
+    body,
+    #viewDiv {
+      padding: 0;
+      margin: 0;
+      height: 100%;
+      width: 100%;
+    }
+
+    #measurements {
+      padding: 4px 8px;
+      font-size: 16px;
+      bottom: 15px;
+      left: 50%;
+      position: absolute;
+      margin-right: -50%;
+      transform: translate(-50%,-50%);
+    }
+  </style>
+
+  <link rel="stylesheet" href="https://js.arcgis.com/4.21/esri/themes/light/main.css">
+  <script src="https://js.arcgis.com/4.21/"></script>
+
+  <script>
+    require([
+      "esri/config",
+      "esri/Map",
+      "esri/views/MapView",
+
+      "esri/Graphic",
+      "esri/layers/GraphicsLayer",
+
+      "esri/widgets/ScaleBar",
+      "esri/widgets/Sketch",
+      "esri/geometry/geometryEngine",
+
+      ], 
+      function(
+        esriConfig,
+        Map, 
+        MapView, 
+        Graphic, 
+        GraphicsLayer,
+        ScaleBar,
+        Sketch,
+        geometryEngine
+      ) {
+
+      esriConfig.apiKey = "APIKEY";
+
+      const map = new Map({
+        basemap: "arcgis-topographic" //Basemap layer service
+      });
+
+      const view = new MapView({
+        map: map,
+        center: [113.347870, -8.250836], //Longitude, latitude
+        zoom: 20,
+        container: "viewDiv"
+      });
+
+      // scale bar
+      const scalebar = new ScaleBar({
+        view: view,
+        unit: "metric"
+      });
+
+      view.ui.add(scalebar, "bottom-right");
+      // end scale bar
+
+      const graphicsLayer = new GraphicsLayer();
+      map.add(graphicsLayer);
+
+      //Create a point
+      // const point = { 
+      //     type: "point",
+      //     longitude: 113.347870,
+      //     latitude: -8.250836
+      // };
+      // const simpleMarkerSymbol = {
+      //     type: "simple-marker",
+      //     color: [226, 119, 40],  // Orange
+      //     outline: {
+      //         color: [255, 255, 255], // White
+      //         width: 1
+      //     }
+      // };
+
+      // const pointGraphic = new Graphic({
+      //     geometry: point,
+      //     symbol: simpleMarkerSymbol
+      // });
+      // graphicsLayer.add(pointGraphic);
+
+      // Create a line geometry
+      // const polyline = {
+      //     type: "polyline",
+      //     paths: [
+      //       [113.347870, -8.250836],
+      //       [113.347639, -8.250764],
+      //       [113.347734, -8.250508],
+      //     ]
+      // };
+      // const simpleLineSymbol = {
+      //     type: "simple-line",
+      //     color: [226, 119, 40], // Orange
+      //     width: 2
+      // };
+
+      // const polylineGraphic = new Graphic({
+      //     geometry: polyline,
+      //     symbol: simpleLineSymbol
+      // });
+      // graphicsLayer.add(polylineGraphic);
+
+      // Create a polygon geometry
+      const polygon = {
+          type: "polygon",
+          rings: [
+            [113.347870, -8.250836],
+            [113.347639, -8.250764],
+            [113.347734, -8.250508],
+            [113.347976, -8.250565],
+          ]
+      };
+
+      const simpleFillSymbol = {
+          type: "simple-fill",
+          color: [227, 139, 79, 0.8],  // Orange, opacity 80%
+          outline: {
+              color: [255, 255, 255],
+              width: 1
+          }
+      };
+
+      const popupTemplate = {
+          title: "{Name}",
+          content: "{Description}"
+      }
+      const attributes = {
+          Name: "Graphic",
+          Description: "I am a polygon"
+      }
+
+      const polygonGraphic = new Graphic({
+          geometry: polygon,
+          symbol: simpleFillSymbol,
+
+          attributes: attributes,
+          popupTemplate: popupTemplate
+
+      });
+      graphicsLayer.add(polygonGraphic);
+
+      function getArea(polygon) {
+        const geodesicArea = geometryEngine.geodesicArea(polygon, "square-meters");
+        // const planarArea = geometryEngine.planarArea(polygon, "square-meters");
+
+        console.log(polygon);
+        console.log(polygon.unit);
+
+        measurements.innerHTML =
+        "<b>Geodesic area</b>:  " + geodesicArea + " m\xB2";// + " |   <b>Planar area</b>: " + planarArea.toFixed(2) + "  km\xB2";
+      }
+
+      getArea(polygonGraphic.geometry);
+    });
+    </script>
+</head>
+<body>
+  <div id="viewDiv">
+
+    <div id="measurements" class="esri-widget">
+
+  </div>
+</body>
+</html>
